@@ -162,6 +162,11 @@
       margin-bottom:10px;
     }
     .sidebar-title{font-size:22px;margin:0}
+    .sidebar-version{
+      font-size:12px;
+      margin-left:4px;
+      opacity:0.85;
+    }
     .row{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
     .row + .row{margin-top:12px}
     .row.sitzplan-row{
@@ -1178,7 +1183,7 @@
   <div class="app" id="app" hidden>
     <aside class="side">
       <div class="sidebar-header">
-        <h1 class="sidebar-title">Gruppengenerator</h1>
+        <h1 class="sidebar-title">Gruppengenerator<span id="app-version" class="sidebar-version"></span></h1>
       </div>
       <div class="steps">
         <ol class="steps-list">
@@ -1400,6 +1405,7 @@
       appEl.hidden = false;
       const els = {
         file: document.getElementById('csv'),
+        appVersion: document.getElementById('app-version'),
       random: document.getElementById('random'),
       suggest: document.getElementById('suggest'),
       resetLearners: document.getElementById('reset-learners'),
@@ -1452,7 +1458,11 @@
       els.workOrderDialog.setAttribute('tabindex','-1');
     }
     const TEMPLATE_CSV_NAME = 'Namensliste Vorlage.csv';
+    const APP_VERSION = 4;
     const TEMPLATE_CSV_CONTENT = [';Nachname;Vorname', ';Wurst;Hans'].join('\n');
+    if(els.appVersion){
+      els.appVersion.textContent = `(v${APP_VERSION})`;
+    }
     const isIOSDevice = (()=>{
       if(typeof navigator === 'undefined'){
         return false;
