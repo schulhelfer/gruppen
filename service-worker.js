@@ -1,12 +1,11 @@
-const CACHE_NAME = 'gruppengenerator-v1';
+const CACHE_NAME = 'gruppengenerator-v8';
 const APP_SHELL = [
   './',
   './index.html',
-  './site.webmanifest',
-  './apple-touch-icon.png',
-  './favicon-32x32.png',
-  './android-chrome-192x192.png',
-  './android-chrome-512x512.png'
+  './manifest.webmanifest',
+  './icon-32x32.png',
+  './icon-192x192.png',
+  './icon-512x512.png'
 ];
 
 self.addEventListener('install', (event) => {
