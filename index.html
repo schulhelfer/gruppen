@@ -3995,6 +3995,24 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         let isReloadingForUpdate = false;
+        const appVersionEl = document.getElementById('app-version');
+
+        const setDisplayedVersion = (version) => {
+          if (!appVersionEl) return;
+          if (typeof version === 'number' && Number.isFinite(version)) {
+            appVersionEl.textContent = `(v${version})`;
+          }
+        };
+
+        const requestVersionFromWorker = (worker) => {
+          if (!worker || typeof MessageChannel === 'undefined') return;
+          const channel = new MessageChannel();
+          channel.port1.onmessage = (event) => {
+            const data = event.data || {};
+            setDisplayedVersion(data.version);
+          };
+          worker.postMessage('GET_VERSION', [channel.port2]);
+        };
 
         const promptForUpdate = (registration) => {
           if (!registration || !registration.waiting) return;
@@ -4012,6 +4030,14 @@
 
         navigator.serviceWorker.register('./service-worker.js')
           .then((registration) => {
+            requestVersionFromWorker(
+              registration.active || registration.waiting || registration.installing
+            );
+
+            navigator.serviceWorker.ready.then((readyRegistration) => {
+              requestVersionFromWorker(readyRegistration.active);
+            });
+
             if (registration.waiting) {
               promptForUpdate(registration);
             }
@@ -4020,6 +4046,9 @@
               const newWorker = registration.installing;
               if (!newWorker) return;
               newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'activated') {
+                  requestVersionFromWorker(newWorker);
+                }
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                   promptForUpdate(registration);
                 }

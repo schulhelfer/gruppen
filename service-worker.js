@@ -58,6 +58,13 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('message', (event) => {
+  if (event.data === 'GET_VERSION') {
+    if (event.ports && event.ports[0]) {
+      event.ports[0].postMessage({ version: VERSION });
+    }
+    return;
+  }
+
   if (event.data === 'SKIP_WAITING') {
     self.skipWaiting();
   }
