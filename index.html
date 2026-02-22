@@ -1458,10 +1458,9 @@
       els.workOrderDialog.setAttribute('tabindex','-1');
     }
     const TEMPLATE_CSV_NAME = 'Namensliste Vorlage.csv';
-    const APP_VERSION = 8;
     const TEMPLATE_CSV_CONTENT = [';Nachname;Vorname', ';Wurst;Hans'].join('\n');
     if(els.appVersion){
-      els.appVersion.textContent = `(v${APP_VERSION})`;
+      els.appVersion.textContent = '';
     }
     const isIOSDevice = (()=>{
       if(typeof navigator === 'undefined'){
@@ -3995,9 +3994,43 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js').catch((error) => {
-          console.warn('Service Worker konnte nicht registriert werden:', error);
+        let isReloadingForUpdate = false;
+
+        const promptForUpdate = (registration) => {
+          if (!registration || !registration.waiting) return;
+          const shouldRestart = window.confirm('Neue Version verfügbar – App neu starten');
+          if (shouldRestart) {
+            registration.waiting.postMessage('SKIP_WAITING');
+          }
+        };
+
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (isReloadingForUpdate) return;
+          isReloadingForUpdate = true;
+          window.location.reload();
         });
+
+        navigator.serviceWorker.register('./service-worker.js')
+          .then((registration) => {
+            if (registration.waiting) {
+              promptForUpdate(registration);
+            }
+
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              if (!newWorker) return;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  promptForUpdate(registration);
+                }
+              });
+            });
+
+            return registration.update();
+          })
+          .catch((error) => {
+            console.warn('Service Worker konnte nicht registriert werden:', error);
+          });
       });
     }
   </script>
